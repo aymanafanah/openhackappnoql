@@ -1,0 +1,729 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-openhack-challenge2"
+		},
+		"AzureSqlDatabaseMovies_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabaseMovies'"
+		},
+		"CosmosDb_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'CosmosDb'"
+		},
+		"TargetCosmosDb_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'TargetCosmosDb'"
+		},
+		"sqldbtest_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'sqldbtest'"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabaseMovies')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Source connection",
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabaseMovies_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CosmosDb')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Final DB destination",
+				"annotations": [],
+				"type": "CosmosDb",
+				"typeProperties": {
+					"connectionString": "[parameters('CosmosDb_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TargetCosmosDb')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "CosmosDb",
+				"typeProperties": {
+					"connectionString": "[parameters('TargetCosmosDb_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sqldbtest')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('sqldbtest_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CosmosDbSqlApiOrders')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "CosmosDb",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CosmosDbSqlApiCollection",
+				"schema": {},
+				"typeProperties": {
+					"collectionName": "orders2"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/CosmosDb')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DestinationDataset_5qx')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "TargetCosmosDb",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CosmosDbSqlApiCollection",
+				"schema": {},
+				"typeProperties": {
+					"collectionName": "MoviesRaw"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/TargetCosmosDb')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SourceDataset_5qx')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "sqldbtest",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_table": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": {
+						"value": "@dataset().cw_table",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/sqldbtest')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/orderdetails')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabaseMovies",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "OrderDetailId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OrderId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Email",
+						"type": "varchar"
+					},
+					{
+						"name": "ProductId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Quantity",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "UnitPrice",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 2
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "OrderDetails"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabaseMovies')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/orders')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabaseMovies",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "OrderId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OrderDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "FirstName",
+						"type": "varchar"
+					},
+					{
+						"name": "LastName",
+						"type": "varchar"
+					},
+					{
+						"name": "Address",
+						"type": "varchar"
+					},
+					{
+						"name": "City",
+						"type": "varchar"
+					},
+					{
+						"name": "State",
+						"type": "varchar"
+					},
+					{
+						"name": "PostalCode",
+						"type": "varchar"
+					},
+					{
+						"name": "Country",
+						"type": "varchar"
+					},
+					{
+						"name": "Phone",
+						"type": "varchar"
+					},
+					{
+						"name": "SMSOptIn",
+						"type": "bit"
+					},
+					{
+						"name": "SMSStatus",
+						"type": "varchar"
+					},
+					{
+						"name": "Email",
+						"type": "varchar"
+					},
+					{
+						"name": "ReceiptUrl",
+						"type": "varchar"
+					},
+					{
+						"name": "Total",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 2
+					},
+					{
+						"name": "PaymentTransactionId",
+						"type": "varchar"
+					},
+					{
+						"name": "HasBeenShipped",
+						"type": "bit"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Orders"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabaseMovies')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CopyPipelineRaw')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach_5qx",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.cw_items",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy_5qx",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [
+										{
+											"name": "Source",
+											"value": "dbo.@{item().source.table}"
+										},
+										{
+											"name": "Destination",
+											"value": "MoviesContainerRaww"
+										}
+									],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "CosmosDbSqlApiSink",
+											"writeBehavior": "insert",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false,
+										"validateDataConsistency": false
+									},
+									"inputs": [
+										{
+											"referenceName": "SourceDataset_5qx",
+											"type": "DatasetReference",
+											"parameters": {
+												"cw_table": "@item().source.table"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DestinationDataset_5qx",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"cw_items": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"source": {
+									"table": "Cartitem"
+								}
+							},
+							{
+								"source": {
+									"table": "Category"
+								}
+							},
+							{
+								"source": {
+									"table": "Event"
+								}
+							},
+							{
+								"source": {
+									"table": "Item"
+								}
+							},
+							{
+								"source": {
+									"table": "ItemAggregate"
+								}
+							},
+							{
+								"source": {
+									"table": "OrderDetails"
+								}
+							},
+							{
+								"source": {
+									"table": "Orders"
+								}
+							},
+							{
+								"source": {
+									"table": "sysdiagrams"
+								}
+							},
+							{
+								"source": {
+									"table": "User"
+								}
+							}
+						]
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-09-28T09:51:55Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SourceDataset_5qx')]",
+				"[concat(variables('factoryId'), '/datasets/DestinationDataset_5qx')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/denormOrders2')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Take 3NF SQL Azure DB schema for Orders and migrate to a denormalized schema in a new CosmosDB container",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "orderdetails",
+								"type": "DatasetReference"
+							},
+							"name": "SourceOrderDetails"
+						},
+						{
+							"dataset": {
+								"referenceName": "orders",
+								"type": "DatasetReference"
+							},
+							"name": "SourceOrders"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "CosmosDbSqlApiOrders",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ColumnScrubber"
+						},
+						{
+							"name": "JoinIt"
+						},
+						{
+							"name": "ValueScrubber"
+						},
+						{
+							"name": "CreateArrays"
+						},
+						{
+							"name": "MakeStruct"
+						},
+						{
+							"name": "Typecast"
+						}
+					],
+					"script": "source(output(\n\t\tOrderDetailId as integer,\n\t\tOrderId as integer,\n\t\tEmail as string,\n\t\tProductId as integer,\n\t\tQuantity as integer,\n\t\tUnitPrice as decimal(18,2)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SourceOrderDetails\nsource(output(\n\t\tOrderId as integer,\n\t\tOrderDate as timestamp,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tPostalCode as string,\n\t\tCountry as string,\n\t\tPhone as string,\n\t\tSMSOptIn as boolean,\n\t\tSMSStatus as string,\n\t\tEmail as string,\n\t\tReceiptUrl as string,\n\t\tTotal as decimal(18,2),\n\t\tPaymentTransactionId as string,\n\t\tHasBeenShipped as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SourceOrders\nJoinIt select(mapColumn(\n\t\tOrderId = SourceOrders@OrderId,\n\t\tOrderDate,\n\t\tFirstName,\n\t\tLastName,\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tPostalCode,\n\t\tCountry,\n\t\tPhone,\n\t\tSMSOptIn,\n\t\tSMSStatus,\n\t\tEmail = SourceOrders@Email,\n\t\tReceiptUrl,\n\t\tTotal,\n\t\tPaymentTransactionId,\n\t\tHasBeenShipped,\n\t\tOrderDetailId,\n\t\tOrderId = SourceOrderDetails@OrderId,\n\t\tEmail = SourceOrderDetails@Email,\n\t\tProductId,\n\t\tQuantity,\n\t\tUnitPrice,\n\t\torderdetailsstruct\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ColumnScrubber\nSourceOrders, MakeStruct join(SourceOrders@OrderId == SourceOrderDetails@OrderId,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinIt\nColumnScrubber derive(Total = toDouble(round(Total,2))) ~> ValueScrubber\nValueScrubber aggregate(groupBy(OrderId),\n\tdetails = collect(orderdetailsstruct),\n\t\teach(match(instr(name,'Quantity')==0&&instr(name,'UnitPrice')==0&&instr(name,'OrderId')==0), $$ = first($$))) ~> CreateArrays\nTypecast derive(orderdetailsstruct = @(quantity=Quantity,\n\t\tunitcost=UnitPrice,\n\t\torderdetailid=OrderDetailId)) ~> MakeStruct\nSourceOrderDetails derive(UnitPrice = toDouble(round(UnitPrice,2))) ~> Typecast\nCreateArrays sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'document',\n\tpartitionKey: ['/SalesOrderID'],\n\tthroughput: 2000,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tOrderId,\n\t\tdetails,\n\t\tOrderDate,\n\t\tFirstName,\n\t\tLastName,\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tPostalCode,\n\t\tCountry,\n\t\tPhone,\n\t\tSMSOptIn,\n\t\tSMSStatus,\n\t\tEmail,\n\t\tReceiptUrl,\n\t\tTotal,\n\t\tPaymentTransactionId,\n\t\tHasBeenShipped,\n\t\tOrderDetailId,\n\t\tProductId,\n\t\torderdetailsstruct\n\t),\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/orderdetails')]",
+				"[concat(variables('factoryId'), '/datasets/orders')]",
+				"[concat(variables('factoryId'), '/datasets/CosmosDbSqlApiOrders')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/denormOrders2_copy1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Take 3NF SQL Azure DB schema for Orders and migrate to a denormalized schema in a new CosmosDB container",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "orderdetails",
+								"type": "DatasetReference"
+							},
+							"name": "SourceOrderDetails"
+						},
+						{
+							"dataset": {
+								"referenceName": "orders",
+								"type": "DatasetReference"
+							},
+							"name": "SourceOrders"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "CosmosDbSqlApiOrders",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ColumnScrubber"
+						},
+						{
+							"name": "JoinIt"
+						},
+						{
+							"name": "ValueScrubber"
+						},
+						{
+							"name": "CreateArrays"
+						},
+						{
+							"name": "MakeStruct"
+						},
+						{
+							"name": "Typecast"
+						}
+					],
+					"script": "source(output(\n\t\tOrderDetailId as integer,\n\t\tOrderId as integer,\n\t\tEmail as string,\n\t\tProductId as integer,\n\t\tQuantity as integer,\n\t\tUnitPrice as decimal(18,2)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SourceOrderDetails\nsource(output(\n\t\tOrderId as integer,\n\t\tOrderDate as timestamp,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tPostalCode as string,\n\t\tCountry as string,\n\t\tPhone as string,\n\t\tSMSOptIn as boolean,\n\t\tSMSStatus as string,\n\t\tEmail as string,\n\t\tReceiptUrl as string,\n\t\tTotal as decimal(18,2),\n\t\tPaymentTransactionId as string,\n\t\tHasBeenShipped as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SourceOrders\nJoinIt select(mapColumn(\n\t\tOrderId = SourceOrders@OrderId,\n\t\tOrderDate,\n\t\tFirstName,\n\t\tLastName,\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tPostalCode,\n\t\tCountry,\n\t\tPhone,\n\t\tSMSOptIn,\n\t\tSMSStatus,\n\t\tEmail = SourceOrders@Email,\n\t\tReceiptUrl,\n\t\tTotal,\n\t\tPaymentTransactionId,\n\t\tHasBeenShipped,\n\t\tOrderDetailId,\n\t\tOrderId = SourceOrderDetails@OrderId,\n\t\tEmail = SourceOrderDetails@Email,\n\t\tProductId,\n\t\tQuantity,\n\t\tUnitPrice,\n\t\torderdetailsstruct\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ColumnScrubber\nSourceOrders, MakeStruct join(SourceOrders@OrderId == SourceOrderDetails@OrderId,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinIt\nColumnScrubber derive(Total = toDouble(round(Total,2))) ~> ValueScrubber\nValueScrubber aggregate(groupBy(OrderId),\n\tdetails = collect(orderdetailsstruct),\n\t\teach(match(instr(name,'Quantity')==0&&instr(name,'UnitPrice')==0&&instr(name,'OrderId')==0), $$ = first($$))) ~> CreateArrays\nTypecast derive(orderdetailsstruct = @(quantity=Quantity,\n\t\tunitcost=UnitPrice,\n\t\torderdetailid=OrderDetailId)) ~> MakeStruct\nSourceOrderDetails derive(UnitPrice = toDouble(round(UnitPrice,2))) ~> Typecast\nCreateArrays sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'document',\n\tpartitionKey: ['/SalesOrderID'],\n\tthroughput: 2000,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tOrderId,\n\t\tdetails,\n\t\tOrderDate,\n\t\tFirstName,\n\t\tLastName,\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tPostalCode,\n\t\tCountry,\n\t\tPhone,\n\t\tSMSOptIn,\n\t\tSMSStatus,\n\t\tEmail,\n\t\tReceiptUrl,\n\t\tTotal,\n\t\tPaymentTransactionId,\n\t\tHasBeenShipped,\n\t\tOrderDetailId,\n\t\tProductId,\n\t\torderdetailsstruct\n\t),\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/orderdetails')]",
+				"[concat(variables('factoryId'), '/datasets/orders')]",
+				"[concat(variables('factoryId'), '/datasets/CosmosDbSqlApiOrders')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/denormOrders2_Challenge3')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Take 3NF SQL Azure DB schema for Orders and migrate to a denormalized schema in a new CosmosDB container",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "orderdetails",
+								"type": "DatasetReference"
+							},
+							"name": "SourceOrderDetails"
+						},
+						{
+							"dataset": {
+								"referenceName": "orders",
+								"type": "DatasetReference"
+							},
+							"name": "SourceOrders"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "CosmosDbSqlApiOrders",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ColumnScrubber"
+						},
+						{
+							"name": "JoinIt"
+						},
+						{
+							"name": "ValueScrubber"
+						},
+						{
+							"name": "CreateArrays"
+						},
+						{
+							"name": "MakeStruct"
+						},
+						{
+							"name": "Typecast"
+						},
+						{
+							"name": "RemoveColumns"
+						}
+					],
+					"script": "source(output(\n\t\tOrderDetailId as integer,\n\t\tOrderId as integer,\n\t\tEmail as string,\n\t\tProductId as integer,\n\t\tQuantity as integer,\n\t\tUnitPrice as decimal(18,2)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SourceOrderDetails\nsource(output(\n\t\tOrderId as integer,\n\t\tOrderDate as timestamp,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tPostalCode as string,\n\t\tCountry as string,\n\t\tPhone as string,\n\t\tSMSOptIn as boolean,\n\t\tSMSStatus as string,\n\t\tEmail as string,\n\t\tReceiptUrl as string,\n\t\tTotal as decimal(18,2),\n\t\tPaymentTransactionId as string,\n\t\tHasBeenShipped as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SourceOrders\nJoinIt select(mapColumn(\n\t\tOrderId = SourceOrders@OrderId,\n\t\tOrderDate,\n\t\tFirstName,\n\t\tLastName,\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tPostalCode,\n\t\tCountry,\n\t\tPhone,\n\t\tSMSOptIn,\n\t\tSMSStatus,\n\t\tEmail = SourceOrders@Email,\n\t\tReceiptUrl,\n\t\tTotal,\n\t\tPaymentTransactionId,\n\t\tHasBeenShipped,\n\t\tOrderDetailId,\n\t\tOrderId = SourceOrderDetails@OrderId,\n\t\tEmail = SourceOrderDetails@Email,\n\t\tProductId,\n\t\tQuantity,\n\t\tUnitPrice,\n\t\torderdetailsstruct\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ColumnScrubber\nSourceOrders, MakeStruct join(SourceOrders@OrderId == SourceOrderDetails@OrderId,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinIt\nColumnScrubber derive(Total = toDouble(round(Total,2))) ~> ValueScrubber\nValueScrubber aggregate(groupBy(OrderId),\n\tdetails = collect(orderdetailsstruct),\n\t\teach(match(instr(name,'Quantity')==0&&instr(name,'UnitPrice')==0&&instr(name,'OrderId')==0), $$ = first($$))) ~> CreateArrays\nTypecast derive(orderdetailsstruct = @(quantity=Quantity,\n\t\tunitcost=UnitPrice,\n\t\torderdetailid=OrderDetailId,\n\t\tproductId=ProductId)) ~> MakeStruct\nSourceOrderDetails derive(UnitPrice = toDouble(round(UnitPrice,2))) ~> Typecast\nCreateArrays select(mapColumn(\n\t\tOrderId,\n\t\tdetails,\n\t\tOrderDate,\n\t\tFirstName,\n\t\tLastName,\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tPostalCode,\n\t\tCountry,\n\t\tPhone,\n\t\tSMSOptIn,\n\t\tSMSStatus,\n\t\tEmail,\n\t\tReceiptUrl,\n\t\tTotal,\n\t\tPaymentTransactionId,\n\t\tHasBeenShipped,\n\t\torderdetailsstruct\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RemoveColumns\nRemoveColumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'document',\n\tpartitionKey: ['/OrderId'],\n\tthroughput: 2000,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tOrderId,\n\t\tdetails,\n\t\tOrderDate,\n\t\tFirstName,\n\t\tLastName,\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tPostalCode,\n\t\tCountry,\n\t\tPhone,\n\t\tSMSOptIn,\n\t\tSMSStatus,\n\t\tEmail,\n\t\tReceiptUrl,\n\t\tTotal,\n\t\tPaymentTransactionId,\n\t\tHasBeenShipped,\n\t\torderdetailsstruct\n\t),\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/orderdetails')]",
+				"[concat(variables('factoryId'), '/datasets/orders')]",
+				"[concat(variables('factoryId'), '/datasets/CosmosDbSqlApiOrders')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQL Orders to CosmosDB')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Take 3NF SQL Azure DB schema for Orders and migrate to a denormalized schema in a new CosmosDB container",
+				"activities": [
+					{
+						"name": "denormOrders2",
+						"description": "Uses Data Flow R2H features",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "denormOrders2",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SourceOrderDetails": {},
+									"SourceOrders": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-09-28T10:08:54Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/denormOrders2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQL Orders to CosmosDB_copy1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Take 3NF SQL Azure DB schema for Orders and migrate to a denormalized schema in a new CosmosDB container",
+				"activities": [
+					{
+						"name": "denormOrders2",
+						"description": "Uses Data Flow R2H features",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "denormOrders2",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SourceOrderDetails": {},
+									"SourceOrders": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-09-28T11:21:54Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/denormOrders2')]"
+			]
+		}
+	]
+}
