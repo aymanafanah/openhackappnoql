@@ -1,0 +1,16 @@
+{
+	"name": "CosmosDbSqlApiOrders",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "CosmosDb",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "CosmosDbSqlApiCollection",
+		"schema": {},
+		"typeProperties": {
+			"collectionName": "orders2"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

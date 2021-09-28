@@ -1,0 +1,16 @@
+{
+	"name": "DestinationDataset_5qx",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "TargetCosmosDb",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "CosmosDbSqlApiCollection",
+		"schema": {},
+		"typeProperties": {
+			"collectionName": "MoviesRaw"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

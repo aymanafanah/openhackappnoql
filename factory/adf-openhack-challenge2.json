@@ -1,0 +1,9 @@
+{
+	"name": "adf-openhack-challenge2",
+	"location": "northeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "208a95eb-f658-484e-a8e2-b6dded325e69",
+		"tenantId": "f8ff7936-ad1f-4c3e-9be0-64e13dea933e"
+	}
+}
