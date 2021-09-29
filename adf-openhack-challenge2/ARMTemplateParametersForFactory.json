@@ -16,6 +16,9 @@
 		},
 		"sqldbtest_connectionString": {
 			"value": ""
+		},
+		"AzureBlobStorageStaging_connectionString": {
+			"value": ""
 		}
 	}
 }
