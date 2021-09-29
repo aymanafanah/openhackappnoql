@@ -1,0 +1,48 @@
+{
+	"name": "Copy Cart Item",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy Cart Item to CosmosDb",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "CosmosDbSqlApiSink",
+						"writeBehavior": "insert"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSqlDbSource",
+						"type": "DatasetReference",
+						"parameters": {
+							"cw_table": "CartItem"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "CosmosDbCartItem",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}
