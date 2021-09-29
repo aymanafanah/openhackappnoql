@@ -1,15 +1,15 @@
 {
-	"name": "DestinationDataset_5qx",
+	"name": "Other_Tables",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "TargetCosmosDb",
+			"referenceName": "Contoso_Movies_CosmosDb",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
 		"type": "CosmosDbSqlApiCollection",
 		"schema": {},
 		"typeProperties": {
-			"collectionName": "MoviesRaw"
+			"collectionName": "OtherTables"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
