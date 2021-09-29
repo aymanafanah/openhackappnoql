@@ -1,5 +1,5 @@
 {
-	"name": "CopyPipelineRaw",
+	"name": "Copy Pipeline Raw",
 	"properties": {
 		"activities": [
 			{
