@@ -1,0 +1,27 @@
+{
+	"name": "JsonBlobFile",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorageStaging",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "order_orderdetail.json",
+					"type": "Expression"
+				},
+				"folderPath": "OrderDetails",
+				"container": "staging"
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "\\",
+			"firstRowAsHeader": false,
+			"quoteChar": ""
+		},
+		"schema": []
+	}
+}

@@ -1,6 +1,111 @@
 {
-	"name": "pipeline1",
+	"name": "Copy Order_OrderDetails",
 	"properties": {
+		"activities": [
+			{
+				"name": "Copy Order Details data to blob",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT [value]\nFROM OPENJSON(\n    (SELECT\n        o.OrderId AS id\n        ,o.OrderDate\n        ,o.FirstName\n        ,o.LastName\n        ,o.Address\n        ,o.City\n        ,o.State\n        ,o.PostalCode\n        ,o.Country\n        ,o.Phone\n        ,o.SMSOptIn\n        ,o.Email\n        ,o.Total\n        ,o.PaymentTransactionId\n        ,o.HasBeenShipped\n        ,(  SELECT \n                OrderDetailId\n                ,od.ProductId\n                ,od.Quantity\n                ,od.UnitPrice\n                ,od.Email\n            FROM\n                OrderDetails od\n            WHERE od.OrderId = o.OrderId FOR JSON AUTO) OrderDetails\n    FROM \n        Orders o\nFOR JSON PATH ))",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SqlOpenQueryDataset",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "JsonBlobFile",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy Json To CosmosDb",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy Order Details data to blob",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "CosmosDbSqlApiSink",
+						"writeBehavior": "insert"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "Order_OrderDetails_JsonBlob",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "CosmosDb_Orders",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
 		"annotations": []
 	}
 }

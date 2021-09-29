@@ -1,0 +1,12 @@
+{
+	"name": "SqlOpenQueryDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabaseMovies",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
