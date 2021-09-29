@@ -2,14 +2,14 @@
 	"name": "CosmosDb_Orders",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "TargetCosmosDb",
+			"referenceName": "Contoso_Movies_CosmosDb",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
 		"type": "CosmosDbSqlApiCollection",
 		"schema": {},
 		"typeProperties": {
-			"collectionName": "Order"
+			"collectionName": "Order_OrderDetail"
 		}
 	}
 }
