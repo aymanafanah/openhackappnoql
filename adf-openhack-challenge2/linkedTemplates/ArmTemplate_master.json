@@ -7,9 +7,17 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-openhack-challenge2"
 		},
+		"AzureBlobStorageStaging_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorageStaging'"
+		},
 		"AzureSqlDatabaseMovies_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabaseMovies'"
+		},
+		"Contoso_Movies_CosmosDb_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Contoso_Movies_CosmosDb'"
 		},
 		"CosmosDb_connectionString": {
 			"type": "secureString",
@@ -22,10 +30,6 @@
 		"sqldbtest_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'sqldbtest'"
-		},
-		"AzureBlobStorageStaging_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorageStaging'"
 		},
 		"containerUri": {
 			"type": "string",
@@ -54,8 +58,14 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"AzureBlobStorageStaging_connectionString": {
+						"value": "[parameters('AzureBlobStorageStaging_connectionString')]"
+					},
 					"AzureSqlDatabaseMovies_connectionString": {
 						"value": "[parameters('AzureSqlDatabaseMovies_connectionString')]"
+					},
+					"Contoso_Movies_CosmosDb_connectionString": {
+						"value": "[parameters('Contoso_Movies_CosmosDb_connectionString')]"
 					},
 					"CosmosDb_connectionString": {
 						"value": "[parameters('CosmosDb_connectionString')]"
@@ -65,9 +75,6 @@
 					},
 					"sqldbtest_connectionString": {
 						"value": "[parameters('sqldbtest_connectionString')]"
-					},
-					"AzureBlobStorageStaging_connectionString": {
-						"value": "[parameters('AzureBlobStorageStaging_connectionString')]"
 					}
 				}
 			},

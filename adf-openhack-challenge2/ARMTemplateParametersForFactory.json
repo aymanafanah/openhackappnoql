@@ -5,7 +5,13 @@
 		"factoryName": {
 			"value": "adf-openhack-challenge2"
 		},
+		"AzureBlobStorageStaging_connectionString": {
+			"value": ""
+		},
 		"AzureSqlDatabaseMovies_connectionString": {
+			"value": ""
+		},
+		"Contoso_Movies_CosmosDb_connectionString": {
 			"value": ""
 		},
 		"CosmosDb_connectionString": {
@@ -15,9 +21,6 @@
 			"value": ""
 		},
 		"sqldbtest_connectionString": {
-			"value": ""
-		},
-		"AzureBlobStorageStaging_connectionString": {
 			"value": ""
 		}
 	}
