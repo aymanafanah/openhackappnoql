@@ -73,11 +73,6 @@
 				"defaultValue": [
 					{
 						"source": {
-							"table": "Cartitem"
-						}
-					},
-					{
-						"source": {
 							"table": "Event"
 						}
 					},
